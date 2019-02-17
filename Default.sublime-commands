@@ -1,0 +1,30 @@
+[
+    {
+        "caption": "PhpBox: Launch Connection",
+        "command": "php_box",
+        "args":{
+            "call" : "\\Chigi\\Sublime\\Commands\\CommandsEntrancePanel",
+            "cmd_args":{}
+        }
+    },
+    {
+        "caption": "PhpBox: Refresh Project Context",
+        "command": "tool_refresh_project"
+    },
+    {
+        "caption": "PhpBox: TestCOMMAND FRM Panel",
+        "command": "php_box",
+        "args":{
+            "call" : "\\Chigi\\Sublime\\Commands\\TestCmd",
+            "cmd_args":{}
+        }
+    },
+    {
+        "caption": "PhpBox: Test IEditorView Interface",
+        "command": "php_box",
+        "args":{
+            "call" : "\\Chigi\\Sublime\\Commands\\TestIEditorView",
+            "cmd_args":{}
+        }
+    }
+]

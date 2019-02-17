@@ -1,0 +1,10 @@
+{
+  "version": "2015.09.24.09.24.33",
+  "url": "https://packagecontrol.io/packages/PhpConnector",
+  "platforms": [
+    "*"
+  ],
+  "description": "The connector plugin to support php development on sublime plugin",
+  "dependencies": [],
+  "sublime_text": "*"
+}

@@ -1,0 +1,10 @@
+[
+	{ 
+		"keys": ["command+shift+r"],
+		"command": "ax_text", 
+            "args":{
+                "call" : "\\Chigi\\Sublime\\Commands\\CommandsEntrancePanel",
+                "cmd_args":{}
+            }
+	}
+]
