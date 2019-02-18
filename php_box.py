@@ -18,9 +18,11 @@ def CMD_PATH():
 	return os.path.join(ChigiArgs.CMD_DIR(), 'sublime.php')
 
 class php_execute(threading.Thread):
-	def __init__(self, cmd, args):
+	def __init__(self, cmd, args, view, window):
 		self.cmd = cmd
 		self.args = args
+		self.view = view
+		self.window = window
 		global command_bin
 		self.php_bin = command_bin
 		threading.Thread.__init__(self)
@@ -105,6 +107,7 @@ class php_execute(threading.Thread):
 					else:
 						# result.args 合并 index
 						self.window.run_command(u"{0}".format(result['on_highlighted_cmd']['cmd']), result['on_highlighted_cmd']['args'])
+				ret = self.window.show_quick_panel(result['items'], on_quick_done, result['flag'], -1, on_quick_highlighted)
 			elif result['type'] == 'show_input_panel':
 				def on_input_done(str):
 					if result['on_done_cmd'] == []:
@@ -123,7 +126,7 @@ class php_execute(threading.Thread):
 						pass
 					else:
 						self.window.run_command(u"{0}".format(result.on_cancel_cmd['cmd']), result.on_cancel_cmd['args'])
-				ret = self.view.show_input_panel(u"{0}".format(result.caption), u"{0}".format(result.initial_text), on_input_done, on_input_change, on_input_cancel)
+				ret = self.window.show_input_panel(u"{0}".format(result.caption), u"{0}".format(result.initial_text), on_input_done, on_input_change, on_input_cancel)
 		else:
 			sublime.error_message(u"{0}".format(result['msg']))
 
@@ -132,7 +135,9 @@ class PhpBoxCommand(sublime_plugin.TextCommand):
 		self.setting = sublime.load_settings("PhpBox.sublime-settings")
 		print(command_bin)
 
-		thread = php_execute('test_yes', {'msg':'好123', 'ok_title':'确认'})
+		# thread = php_execute('test_show_quick_panel', {'items':['a','b','c']}, self.view, sublime.windows()[0])
+
+		thread = php_execute('test_show_quick_panel', {'items':{'a':'a','b':'b','c':'c'}}, self.view, sublime.windows()[0])
 		thread.start()
 		ThreadProgress(thread, 'Is excuting', 'Finding Done')
 
