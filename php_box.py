@@ -137,7 +137,7 @@ class PhpBoxCommand(sublime_plugin.TextCommand):
 
 		# thread = php_execute('test_show_quick_panel', {'items':['a','b','c']}, self.view, sublime.windows()[0])
 
-		thread = php_execute('test_show_quick_panel', {'items':{'a':'a','b':'b','c':'c'}}, self.view, sublime.windows()[0])
+		thread = php_execute('test_show_quick_panel', {'items':[['a','a'],['b','b'],['c','c']]}, self.view, sublime.windows()[0])
 		thread.start()
 		ThreadProgress(thread, 'Is excuting', 'Finding Done')
 
