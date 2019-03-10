@@ -2,6 +2,7 @@
 namespace Sublime;
 
 class Ret{
+	const RETURN_TYPE_STATUS_MSG        = 'status_message';
 	const RETURN_TYPE_ALERT             = 'error_dialog';
 	const RETURN_TYPE_MSG               = 'msg_dialog';
 	const RETURN_TYPE_OK                = 'ok_cancel_dialog';
@@ -59,6 +60,15 @@ class Ret{
 		return self::encode($arr);
 	}
 
+	public static function status_message($str){
+		$arr = [
+			'code'  => 200,
+			'type'  => self::RETURN_TYPE_STATUS_MSG,
+			'msg'   => $str,
+		];
+		return self::encode($arr);
+	}
+
 	public static function set_clipboard($str){
 		$arr = [
 			'code'  => 200,
@@ -86,6 +96,7 @@ class Ret{
 			'flag'               => $flag,
 			'on_highlighted_cmd' => $on_highlighted_cmd,
 		];
+		trace($arr);
 		return self::encode($arr);
 	}
 
@@ -102,12 +113,38 @@ class Ret{
 		return self::encode($arr);
 	}
 
-	public static function run_command($cmd, $args=[]){
+	/**
+	 * 返回执行命令
+	 * @param  string $cmd  命令
+	 * @param  string $from view sublime applicant
+	 * @param  array  $args 参数
+	 * @return string
+	 */
+	public static function run_command($cmd, $from, $args=[]){
 		$arr = [
 			'code' => 200,
 			'type' => self::RETURN_TYPE_CMD_RUN_COMMAND,
 			'cmd'  => $cmd,
 			'args' => $args,
+			'from' => $from,
+		];
+		return self::encode($arr);
+	}
+
+	public static function run_box_command($cmd, $args = []){
+		$args = [
+			'cmd'=>'php_box',
+			'args'=>[
+				'call'     => $cmd,
+				'cmd_args' => $args
+			]
+		];
+		$arr = [
+			'code' => 200,
+			'type' => self::RETURN_TYPE_CMD_RUN_COMMAND,
+			'cmd'  => $cmd,
+			'args' => $args,
+			'from' => 'window',
 		];
 		return self::encode($arr);
 	}

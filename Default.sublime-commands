@@ -3,8 +3,10 @@
         "caption": "PhpBox: Launch Connection",
         "command": "php_box",
         "args":{
-            "call" : "\\Chigi\\Sublime\\Commands\\CommandsEntrancePanel",
-            "cmd_args":{}
+            "call" : "",
+            "cmd_args":{
+                "index":-100
+            }
         }
     },
     {
@@ -15,8 +17,8 @@
         "caption": "PhpBox: TestCOMMAND FRM Panel",
         "command": "php_box",
         "args":{
-            "call" : "\\Chigi\\Sublime\\Commands\\TestCmd",
-            "cmd_args":{}
+            "call" : "test_show_quick_panel",
+            "cmd_args":{"items":[["a","a"],["b","b"],["c", "c"]]}
         }
     },
     {
