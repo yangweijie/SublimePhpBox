@@ -17,6 +17,17 @@ def CMD_DIR():
 def CMD_PATH():
 	return os.path.join(ChigiArgs.CMD_DIR(), 'sublime.php')
 
+def plugin_loaded():
+	from package_control import events
+
+	if events.install(package_name):
+		print('in loader')
+		thread = check_php_bin()
+		thread.start()
+		ThreadProgress(thread, 'Is excuting', 'Finding Done')
+	elif events.post_upgrade(package_name):
+		print('Upgraded to %s!' % events.post_upgrade(package_name))
+
 class php_execute(threading.Thread):
 	def __init__(self, cmd, args, view, window):
 		self.cmd = cmd
@@ -161,6 +172,24 @@ class php_execute(threading.Thread):
 					sublime.run_command(cmd, result['args'])
 		else:
 			sublime.error_message(u"{0}".format(result['msg']))
+
+class check_php_bin(threading.Thread):
+	def run(self):
+        self.settings = sublime.load_settings("PhpBox.sublime-settings")
+        self.php_path = self.setting.get("php_path");
+    	check_php_path = os.popen(self.php_path + ' -v').read()
+        print("3###");
+        pattern = re.compile(r'^PHP \d+.\d+');
+        if pattern.match(check_php_path):
+            check_php_path = True;
+        else:
+            check_php_path = False;
+        if check_php_path == False:
+        	sublime.windows()[0].show_input_panel(u'Please input php bin path', '/usr/local/bin', self.done, None, None)
+    def done(path):
+    	self.settings.set('php_path', path)
+
+
 
 class PhpBoxCommand(sublime_plugin.TextCommand):
 	def run(self, edit, call, cmd_args):
