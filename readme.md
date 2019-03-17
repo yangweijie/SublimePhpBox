@@ -16,5 +16,7 @@
 - error_message
 - show_quick_panel
 - show_input_panel
-- create_output_panel
+- create_output_panel not yet
 - find_output_panel
+- show_popup
+- show_popup_menu

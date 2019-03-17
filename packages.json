@@ -1,13 +1,13 @@
 {
     "schema_version": "1.0",
     "packages": [{
-        "name": "PhpConnector",
+        "name": "PhpBox",
         "description": "The connector plugin to support php development on sublime plugin.",
-        "author": "Richard Lea",
-        "homepage": "https://github.com/chigix/sublime-php-connector",
-        "last_modified": "2014-02-11 03:57:00",
+        "author": "yangweijie",
+        "homepage": "https://github.com/yangweijie/SublimePhpBox",
+        "last_modified": "2019-03-17 03:57:00",
         "releases": [{
-            "details": "https://github.com/chigix/sublime-php-connector/tree/master"
+            "details": "https://github.com/yangweijie/SublimePhpBox/tree/master"
         }]
     }]
 }
