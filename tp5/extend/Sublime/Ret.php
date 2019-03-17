@@ -11,10 +11,15 @@ class Ret{
 	const RETURN_TYPE_CMD_RUN_COMMAND   = 'run_command';
 	const RETURN_TYPE_SHOW_QUICK_PANEL  = 'show_quick_panel';
 	const RETURN_TYPE_SHOW_INPUT_PANEL  = 'show_input_panel';
+	const RETURN_TYPE_SHOW_POPUP_MENU   = 'show_popup_menu';
+	const RETURN_TYPE_SHOW_POPUP        = 'show_popup';
 
 	const SUBLIMT_CONSTS = [
-		'MONOSPACE_FONT'          => 1,
-		'KEEP_OPEN_ON_FOCUS_LOST' => 2,
+		'MONOSPACE_FONT'               => 1,
+		'KEEP_OPEN_ON_FOCUS_LOST'      => 2,
+		'COOPERATE_WITH_AUTO_COMPLETE' => 2,
+		'HIDE_ON_MOUSE_MOVE'           => 4,
+		'HIDE_ON_MOUSE_MOVE_AWAY'      => 8,
 	];
 
 	public static function alert($msg, $cmd=''){
@@ -109,6 +114,42 @@ class Ret{
 			'on_done_cmd'   => $on_done_cmd,
 			'on_change_cmd' => $on_change_cmd,
 			'on_cancel_cmd' => $on_cancel_cmd,
+		];
+		return self::encode($arr);
+	}
+
+	public static function show_popup_menu($items, $on_done_cmd = []){
+		$arr = [
+			'code'          => 200,
+			'type'          => self::RETURN_TYPE_SHOW_POPUP_MENU,
+			'items'         => $items,
+			'on_done_cmd'   => $on_done_cmd,
+		];
+		return self::encode($arr);
+	}
+
+	/**
+	 * show_pop
+	 * @param  string  $content         html内容
+	 * @param  int  $flag            sublime.COOPERATE_WITH_AUTO_COMPLETE sublime.HIDE_ON_MOUSE_MOVE sublime.HIDE_ON_MOUSE_MOVE_AWAY
+	 * @param  integer $location        -1 或 点坐标
+	 * @param  integer $max_width       高度
+	 * @param  integer $max_height      宽度
+	 * @param  array   $on_navigate_cmd 当html里的a链接点击时的处理
+	 * @param  array   $on_hide_cmd     隐藏时的处理
+	 * @return string
+	 */
+	public static function show_popup($content, $flags , $location = -1, $max_width = 200, $max_height = 200, $on_navigate_cmd=[], $on_hide_cmd = []){
+		$arr = [
+			'code'            => 200,
+			'type'            => self::RETURN_TYPE_SHOW_POPUP,
+			'content'         => $content,
+			'flags'           => $flags,
+			'location'        => $location,
+			'max_width'       => $max_width,
+			'max_height'      => $max_height,
+			'on_navigate_cmd' => $on_navigate_cmd,
+			'on_hide_cmd'     => $on_hide_cmd,
 		];
 		return self::encode($arr);
 	}

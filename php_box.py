@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import sublime, sublime_plugin, sys
 # import sublime_lib
-import os, subprocess, string, json, threading, re, time
+import os, codecs, subprocess, string, json, threading, re, time
 import base64,binascii
 
 from .thread_progress import ThreadProgress
@@ -17,16 +17,13 @@ def CMD_DIR():
 def CMD_PATH():
 	return os.path.join(ChigiArgs.CMD_DIR(), 'sublime.php')
 
-def plugin_loaded():
-	from package_control import events
 
-	if events.install(package_name):
-		print('in loader')
-		thread = check_php_bin()
-		thread.start()
-		ThreadProgress(thread, 'Is excuting', 'Finding Done')
-	elif events.post_upgrade(package_name):
-		print('Upgraded to %s!' % events.post_upgrade(package_name))
+def fs_reader(path):
+    return codecs.open(path, mode='r', encoding='utf8').read()
+
+def fs_writer(path, raw):
+    codecs.open(path, mode='w', encoding='utf8', errors='ignore').write(raw)
+
 
 class php_execute(threading.Thread):
 	def __init__(self, cmd, args, view, window):
@@ -34,17 +31,18 @@ class php_execute(threading.Thread):
 		self.args = args
 		self.view = view
 		self.window = window
+		settings = sublime.load_settings("PhpBox.sublime-settings")
+		self.php_bin = settings.get('php_path')
 		global command_bin
-		self.php_bin = command_bin
 		threading.Thread.__init__(self)
 
 	def run(self):
 
-		command_text = 'php "' + command_bin + '" sublime/index/run/call/'+self.cmd+'/args/'+ base64.b64encode(json.dumps(self.args, sort_keys=True).encode('utf-8')).decode('utf-8')
-		print(command_text)
+		command_text = self.php_bin+' "' + command_bin + '" sublime/index/run/call/'+self.cmd+'/args/'+ base64.b64encode(json.dumps(self.args, sort_keys=True).encode('utf-8')).decode('utf-8')
+		# print(command_text)
 		cloums = os.popen(command_text)
 		data = cloums.read()
-		print(data)
+		# print(data)
 		self.parse_php_result(data)
 
 	def parse_php_result(self, out):
@@ -113,12 +111,15 @@ class php_execute(threading.Thread):
 						pass
 					else:
 						# result.args 合并 index
-						print(index)
+						# print('index:')
+						# print(index)
+						# print(result['on_done_cmd'])
 						if 'cmd_args' in result['on_done_cmd']['args']:
 							result['on_done_cmd']['args']['cmd_args']['index'] = index
+							result['on_done_cmd']['args']['inner'] = 1
 						else:
 							result['on_done_cmd']['args']['index'] = index
-						print(result['on_done_cmd']['args'])
+						# print(result['on_done_cmd']['args'])
 						self.window.run_command(u"{0}".format(result['on_done_cmd']['cmd']), result['on_done_cmd']['args'])
 				def on_quick_highlighted(index):
 					if result['on_highlighted_cmd'] == []:
@@ -128,6 +129,7 @@ class php_execute(threading.Thread):
 						print(index)
 						if 'cmd_args' in result['on_highlighted_cmd']['args']:
 							result['on_highlighted_cmd']['args']['cmd_args']['index'] = index
+							result['on_highlighted_cmd']['args']['inner'] = 1
 						else:
 							result['on_highlighted_cmd']['args']['index'] = index
 						print(result['on_highlighted_cmd']['args'])
@@ -140,10 +142,10 @@ class php_execute(threading.Thread):
 					else:
 						# result.args 合并 str
 						if 'cmd_args' in result['on_done_cmd']['args']:
+							result['on_done_cmd']['args']['inner'] = 1
 							result['on_done_cmd']['args']['cmd_args']['str'] = str
 						else:
 							result['on_done_cmd']['args']['str'] = str
-						print(result['on_done_cmd']['args'])
 						self.window.run_command(u"{0}".format(result['on_done_cmd']['cmd']), result['on_done_cmd']['args'])
 				def on_input_change(str):
 					if result['on_change_cmd'] == []:
@@ -151,66 +153,155 @@ class php_execute(threading.Thread):
 					else:
 						# result['args'] 合并 str
 						if 'cmd_args' in result['on_change_cmd']['args']:
+							result['on_change_cmd']['args']['inner'] = 1
 							result['on_change_cmd']['args']['cmd_args']['str'] = str
 						else:
 							result['on_change_cmd']['args']['str'] = str
 						print(result['on_change_cmd']['args'])
-						self.window.run_command(u"{0}".format(result.on_change_cmd['cmd']), result.on_change_cmd['args'])
+						self.window.run_command(u"{0}".format(result['on_change_cmd']['cmd']), result['on_change_cmd']['args'])
 				def on_input_cancel():
 					if result['on_cancel_cmd'] == []:
 						pass
 					else:
-						self.window.run_command(u"{0}".format(result.on_cancel_cmd['cmd']), result.on_cancel_cmd['args'])
-				ret = self.window.show_input_panel(u"{0}".format(result.caption), u"{0}".format(result.initial_text), on_input_done, on_input_change, on_input_cancel)
+						if 'cmd_args' in result['on_cancel_cmd']['args']:
+							result['on_cancel_cmd']['args']['inner'] = 1
+						self.window.run_command(u"{0}".format(result['on_cancel_cmd']['cmd']), result['on_cancel_cmd']['args'])
+				ret = self.window.show_input_panel(u"{0}".format(result['caption']), u"{0}".format(result['initial_text']), on_input_done, on_input_change, on_input_cancel)
+			elif result['type'] == 'show_popup_menu':
+				def on_done(index):
+					if result['on_done_cmd'] == []:
+						pass
+					else:
+						# result['args'] 合并 str
+						if 'cmd_args' in result['on_done_cmd']['args']:
+							result['on_done_cmd']['args']['cmd_args']['index'] = index
+							result['on_done_cmd']['args']['inner'] = 1
+						else:
+							result['on_done_cmd']['args']['index'] = index
+						self.window.run_command(u"{0}".format(result['on_done_cmd']['cmd']), result['on_done_cmd']['args'])
+				self.view.show_popup_menu(result['items'], on_done)
+			elif result['type'] == 'show_popup':
+				def on_navigate(str):
+					if result['on_navigate_cmd'] == []:
+						pass
+					else:
+						# result['args'] 合并 str
+						if 'cmd_args' in result['on_navigate_cmd']['args']:
+							result['on_navigate_cmd']['args']['cmd_args']['index'] = index
+							result['on_navigate_cmd']['args']['inner'] = 1
+						else:
+							result['on_navigate_cmd']['args']['index'] = index
+						self.window.run_command(u"{0}".format(result['on_navigate_cmd']['cmd']), result['on_navigate_cmd']['args'])
+				def on_hide():
+					if result['on_hide'] == []:
+						pass
+					else:
+						# result['args'] 合并 str
+						if 'cmd_args' in result['on_hide']['args']:
+							result['on_hide']['args']['inner'] = 1
+						self.window.run_command(u"{0}".format(result['on_hide']['cmd']), result['on_hide']['args'])
+				self.view.show_popup(result['content'], result['flags'], result['location'], result['max_width'], result['max_height'], on_navigate, on_hide)
 			elif result['type'] == 'run_command':
 				cmd = u"{0}".format(result['cmd'])
+				result['args']['inner'] = 1
 				if result['from'] == 'window':
 					self.window.run_command(cmd, result['args'])
 				elif result['from'] == 'view':
-					pass
+					self.view.run_command(cmd, result['args'])
 				elif result['from'] == 'applicant':
 					sublime.run_command(cmd, result['args'])
 		else:
 			sublime.error_message(u"{0}".format(result['msg']))
 
-class check_php_bin(threading.Thread):
-	def run(self):
-        self.settings = sublime.load_settings("PhpBox.sublime-settings")
-        self.php_path = self.setting.get("php_path");
-    	check_php_path = os.popen(self.php_path + ' -v').read()
-        print("3###");
-        pattern = re.compile(r'^PHP \d+.\d+');
-        if pattern.match(check_php_path):
-            check_php_path = True;
-        else:
-            check_php_path = False;
-        if check_php_path == False:
-        	sublime.windows()[0].show_input_panel(u'Please input php bin path', '/usr/local/bin', self.done, None, None)
-    def done(path):
-    	self.settings.set('php_path', path)
+def check_php(path):
+	php_path = path
+	check_php_path = os.popen(php_path + ' -v').read()
+	# print(php_path);
+	# print(check_php_path)
+	pattern = re.compile(r'^PHP \d+.\d+');
+	if pattern.match(check_php_path):
+		check_php_path = True;
+	else:
+		check_php_path = False;
+	if check_php_path == False:
+		sublime.windows()[0].show_input_panel(u'Please input php bin path', '/usr/local/bin/php', self.done, None, None)
+	return check_php_path
 
-
+	def done(self,path):
+		settings = sublime.load_settings("PhpBox.sublime-settings")
+		settings.set('php_path', path)
 
 class PhpBoxCommand(sublime_plugin.TextCommand):
-	def run(self, edit, call, cmd_args):
-		self.setting = sublime.load_settings("PhpBox.sublime-settings")
-		print(command_bin)
-		print(call)
-		print(cmd_args)
+	def refresh_curr(self, curr):
+		obj = packages_path + os.sep + 'curr.json'
+		fs_writer(obj, json.dumps(curr, sort_keys=True, indent=4, separators=(',', ': ')))
+		# self.settings.get('curr')
+	def get_sel(self):
+		region = self.view.sel()[0]
+		if region.begin() != region.end():
+			return self.view.substr(region)
+		else:
+			return ''
+	def run(self, edit, call, cmd_args, inner = 0):
+		curr_win = sublime.active_window()
+		# sublime.error_message(self.get_sel())
+		curr_view = self.view
+		curr = {
+			"window":{
+				"window":{
+					"id":curr_win.id(),
+					"num_groups":curr_win.num_groups(),
+					"active_group":curr_win.active_group(),
+					"is_menu_visible":curr_win.is_menu_visible(),
+					"is_sidebar_visible":curr_win.is_sidebar_visible(),
+					"get_tabs_visible":curr_win.get_tabs_visible(),
+					"is_minimap_visible":curr_win.is_minimap_visible(),
+					"is_status_bar_visible":curr_win.is_status_bar_visible(),
+					"folders":curr_win.folders(),
+					"project_file_name":curr_win.project_file_name(),
+					"project_data":curr_win.project_data(),
+					"active_panel":curr_win.active_panel(),
+					"panels":curr_win.panels(),
+				}
+			},
+			"view":{
+				"id":curr_view.id(),
+				"buffer_id":curr_view.buffer_id(),
+				"is_primary":curr_view.is_primary(),
+				"file_name":curr_view.file_name(),
+				"name":curr_view.name(),
+				"is_dirty":curr_view.is_dirty(),
+				"is_read_only":curr_view.is_read_only(),
+				"is_scratch":curr_view.is_scratch(),
+				"size":curr_view.size(),
+				"viewport_extent":curr_view.viewport_extent(),
+				"layout_extent":curr_view.layout_extent(),
+				"line_height":curr_view.line_height(),
+				"em_width":curr_view.em_width(),
+				"change_count":curr_view.change_count(),
+				"encoding":curr_view.encoding(),
+				"line_endings":curr_view.line_endings(),
+				"is_popup_visible":curr_view.is_popup_visible(),
+				"is_auto_complete_visible":curr_view.is_auto_complete_visible(),
+				"style":curr_view.style(),
+				"sel":self.get_sel()
+			}
+		}
+		print('curr')
+		# print(curr)
+		if('inner' not in cmd_args):
+			self.refresh_curr(curr)
+		# return
+		self.settings = sublime.load_settings("PhpBox.sublime-settings")
+
+		if(check_php(self.settings.get('php_path'))) == False:
+			return
+		# print(command_bin)
+		# print(call)
+		# print(cmd_args)
 		if call == '':
 			thread = php_execute('app\\sublime\\command\\ListCmd', cmd_args, self.view, sublime.windows()[0])
 		else:
 			thread = php_execute(call, cmd_args, self.view, sublime.windows()[0])
-
-		# thread = php_execute('test_show_quick_panel', {'items':['a','b','c']}, self.view, sublime.windows()[0])
-		# thread = php_execute('test_show_quick_panel', {'items':[['a','a'],['b','b'],['c','c']]}, self.view, sublime.windows()[0])
 		thread.start()
 		ThreadProgress(thread, 'Is excuting', 'Finding Done')
-
-
-
-# thread = UpgradeAllPackagesThread(self.window, package_renamer)
-#         thread.start()
-#         ThreadProgress(thread, 'Loading repositories', '')
-
-

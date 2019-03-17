@@ -10,11 +10,11 @@
 ### 异常
 
 ## sublime ui
-ok_cancel_dialog
-status_message
-message_dialog
-error_message
-show_quick_panel
-show_input_panel
-create_output_panel
-find_output_panel
+- ok_cancel_dialog
+- status_message
+- message_dialog
+- error_message
+- show_quick_panel
+- show_input_panel
+- create_output_panel
+- find_output_panel
