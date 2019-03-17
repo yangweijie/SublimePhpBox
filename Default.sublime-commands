@@ -8,25 +8,5 @@
                 "index":-100
             }
         }
-    },
-    {
-        "caption": "PhpBox: Refresh Project Context",
-        "command": "tool_refresh_project"
-    },
-    {
-        "caption": "PhpBox: TestCOMMAND FRM Panel",
-        "command": "php_box",
-        "args":{
-            "call" : "test_show_quick_panel",
-            "cmd_args":{"items":[["a","a"],["b","b"],["c", "c"]]}
-        }
-    },
-    {
-        "caption": "PhpBox: Test IEditorView Interface",
-        "command": "php_box",
-        "args":{
-            "call" : "\\Chigi\\Sublime\\Commands\\TestIEditorView",
-            "cmd_args":{}
-        }
     }
 ]

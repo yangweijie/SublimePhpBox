@@ -1,7 +1,7 @@
 [
-	{ 
+	{
 		"keys": ["ctrl+shift+r"],
-		"command": "ax_text", 
+		"command": "php_box",
             "args":{
                 "call" : "\\Chigi\\Sublime\\Commands\\CommandsEntrancePanel",
                 "cmd_args":{}
